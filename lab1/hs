@@ -55,7 +55,6 @@ void simple_cli(NetworkFileTool* client){
                 while(fread(client->buf,sizeof(char),DEFAULT_BUFF_SIZE,file)>0 ){
                     DEBUG(printf("%s",client->buf));
                     client->msend_file(client);
-                    
                 }
                 printf("the file size is %d\n",file_size);
                 close(client->sock);
@@ -88,3 +87,5 @@ int main(int argc,char *argv[]) {
     // close(client->sock);
     return 0;
 }
+
+             

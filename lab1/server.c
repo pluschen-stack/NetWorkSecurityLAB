@@ -25,8 +25,32 @@ void simple_cli(NetworkFileTool* server){
         socklen_t client_addr_size = sizeof(client_addr);
         int client_sock = accept(server->sock,(struct sockaddr*)&client_addr,&client_addr_size);
         char* buf = malloc(DEFAULT_BUFF_SIZE);
-        read(client_sock,buf,DEFAULT_BUFF_SIZE);
-        printf("%s\n",buf);
+        memset(buf,0,DEFAULT_BUFF_SIZE);
+        
+        recv(client_sock,buf,DEFAULT_BUFF_SIZE,0);
+        if(!strncmp(buf,"upload",6)){
+            int file_size = atoi(buf+16);
+            char filename[DEFAULT_FILENAME_SIZE];
+            memset(filename,0,DEFAULT_FILENAME_SIZE);
+            strncpy(filename,strstr(buf,"filename=")+9,(strstr(buf," end"))-(strstr(buf,"filename=")+9));
+            printf("uploaded file_size = %d\n",file_size);
+            printf("uploaded filename = %s\n",filename);
+            int remain_data = file_size;
+            FILE* file = fopen("hs","w");
+            int len = 0;
+            fwrite(strstr(buf," end")+4 ,sizeof(char), DEFAULT_BUFF_SIZE, file);
+            remain_data -= DEFAULT_BUFF_SIZE;
+            fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len, remain_data);
+            while((remain_data > 0) && ((len = recv(client_sock, buf, DEFAULT_BUFF_SIZE, 0)) > 0)){
+                fwrite(buf ,sizeof(char), len, file);
+                remain_data -= len;
+                fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len, remain_data);
+            }
+        }else if(!strcmp(buf,"download")){
+            
+        }
+            
+        
     }else{
         printf("server bind false");
     }
@@ -63,8 +87,8 @@ int main(int argc,char *argv[]){
 //     socklen_t clnt_addr_size = sizeof(clnt_addr);
 //     int clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size);
 //     //向客户端发送数据
-//     char str[] = "Hello World!";
-//     write(clnt_sock, str, sizeof(str));
+    // char str[] = "Hello World!";
+    // write(clnt_sock, str, sizeof(str));
    
 //     //关闭套接字
 //     close(clnt_sock);

@@ -20,6 +20,7 @@ typedef int func(NetworkFileTool *);
 struct NetworkFileTool{
     int sock;//sockect description
     struct sockaddr_in* addr;//address
+    int connect_flag;
     char* buf;
 
     func *msend_file;
