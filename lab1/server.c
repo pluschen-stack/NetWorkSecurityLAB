@@ -37,14 +37,16 @@ void simple_cli(NetworkFileTool* server){
             printf("uploaded filename = %s\n",filename);
             int remain_data = file_size;
             FILE* file = fopen("hs","w");
-            int len = 0;
-            fwrite(strstr(buf," end")+4 ,sizeof(char), DEFAULT_BUFF_SIZE, file);
-            remain_data -= DEFAULT_BUFF_SIZE;
+            
+            char* real_start = strstr(buf," end")+4;
+            fwrite(real_start,sizeof(char), strlen(real_start), file);
+            int len = strlen(real_start);
+            remain_data -= len;
             fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len, remain_data);
             while((remain_data > 0) && ((len = recv(client_sock, buf, DEFAULT_BUFF_SIZE, 0)) > 0)){
-                fwrite(buf ,sizeof(char), len, file);
+                fwrite(buf ,sizeof(char), len<remain_data?len:remain_data, file);
                 remain_data -= len;
-                fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len, remain_data);
+                fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len<remain_data?len:(remain_data<0?0:remain_data), remain_data);
             }
         }else if(!strcmp(buf,"download")){
             

@@ -32,6 +32,7 @@ void simple_cli(NetworkFileTool* client){
         printf("please input file name to download:");
         if(scanf("%s",filename) == 1 && valid_FileName(filename)){
             printf("downloading %s from server\n",filename);
+
         }
     }else if(select == 2){
         printf("please input file name to upload:");
@@ -47,6 +48,7 @@ void simple_cli(NetworkFileTool* client){
                 client->buf = malloc(DEFAULT_BUFF_SIZE);
                 memset(client->buf,0,DEFAULT_BUFF_SIZE);
                 
+                
                 char str[100];
                 sprintf(str, "upload filesize=%d,filename=%s end", file_size,filename);
                 strcpy(client->buf,str);
@@ -57,6 +59,7 @@ void simple_cli(NetworkFileTool* client){
                     client->msend_file(client);
                     
                 }
+                
                 printf("the file size is %d\n",file_size);
                 close(client->sock);
                 fclose(file);
