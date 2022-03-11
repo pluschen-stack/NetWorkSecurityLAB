@@ -24,32 +24,63 @@ void simple_cli(NetworkFileTool* server){
         struct sockaddr_in client_addr;
         socklen_t client_addr_size = sizeof(client_addr);
         int client_sock = accept(server->sock,(struct sockaddr*)&client_addr,&client_addr_size);
-        char* buf = malloc(DEFAULT_BUFF_SIZE);
-        memset(buf,0,DEFAULT_BUFF_SIZE);
+        server->buf = malloc(DEFAULT_BUFF_SIZE);
+        memset(server->buf,0,DEFAULT_BUFF_SIZE);
         
-        recv(client_sock,buf,DEFAULT_BUFF_SIZE,0);
-        if(!strncmp(buf,"upload",6)){
-            int file_size = atoi(buf+16);
+        recv(client_sock,server->buf,DEFAULT_BUFF_SIZE,0);
+        if(!strncmp(server->buf,"upload",6)){
+            int file_size = atoi(server->buf+16);
             char filename[DEFAULT_FILENAME_SIZE];
             memset(filename,0,DEFAULT_FILENAME_SIZE);
-            strncpy(filename,strstr(buf,"filename=")+9,(strstr(buf," end"))-(strstr(buf,"filename=")+9));
+            strncpy(filename,strstr(server->buf,"filename=")+9,(strstr(server->buf," end"))-(strstr(server->buf,"filename=")+9));
             printf("uploaded file_size = %d\n",file_size);
             printf("uploaded filename = %s\n",filename);
             int remain_data = file_size;
-            FILE* file = fopen("hs","w");
+            FILE* file = fopen("dest","w");
             
-            char* real_start = strstr(buf," end")+4;
+            char* real_start = strstr(server->buf," end")+4;
             fwrite(real_start,sizeof(char), strlen(real_start), file);
             int len = strlen(real_start);
             remain_data -= len;
             fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len, remain_data);
-            while((remain_data > 0) && ((len = recv(client_sock, buf, DEFAULT_BUFF_SIZE, 0)) > 0)){
-                fwrite(buf ,sizeof(char), len<remain_data?len:remain_data, file);
+            while((remain_data > 0) && ((len = recv(client_sock, server->buf, DEFAULT_BUFF_SIZE, 0)) > 0)){
+                fwrite(server->buf ,sizeof(char), len<remain_data?len:remain_data, file);
                 remain_data -= len;
                 fprintf(stdout, "Receive %d bytes and we still hope : %d bytes\n", len<remain_data?len:(remain_data<0?0:remain_data), remain_data);
             }
-        }else if(!strcmp(buf,"download")){
+        }else if(!strncmp(server->buf,"download",8)){
+            char filename[DEFAULT_FILENAME_SIZE];
+            memset(filename,0,DEFAULT_FILENAME_SIZE);
+            strncpy(filename,strstr(server->buf,"filename=")+9,(strstr(server->buf," end"))-(strstr(server->buf,"filename=")+9));
+            FILE* file;
+            if((file = fopen(filename,"r"))==NULL){
+                perror("file open error:");
+            }
+
+            printf("uploading %s to client\n",filename);
+
+            fseek(file,0,SEEK_END);
+            int file_size = ftell(file);
+            fseek(file,0,SEEK_SET);
+            char str[100];
+
+            sprintf(str, "upload filesize=%d,filename=%s end", file_size,filename);
             
+            strcpy(server->buf,str);
+            DEBUG(printf("server->buf = %s\n",server->buf));
+            
+            send(client_sock,server->buf,strlen(server->buf),0);
+            memset(server->buf,0,DEFAULT_BUFF_SIZE);
+            while(fread(server->buf,sizeof(char),DEFAULT_BUFF_SIZE,file)>0 ){
+                DEBUG(printf("%s\n",server->buf));
+                send(client_sock,server->buf,strlen(server->buf),0);
+                memset(server->buf,0,DEFAULT_BUFF_SIZE);
+            }
+            
+            printf("the file size is %d\n",file_size);
+            close(server->sock);
+            close(client_sock);
+            fclose(file);
         }
             
         
