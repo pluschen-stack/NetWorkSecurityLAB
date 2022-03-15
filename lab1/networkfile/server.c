@@ -36,7 +36,8 @@ void simple_cli(NetworkFileTool* server){
             printf("uploaded file_size = %d\n",file_size);
             printf("uploaded filename = %s\n",filename);
             int remain_data = file_size;
-            FILE* file = fopen("dest","w");
+            strcat(filename,"copied");
+            FILE* file = fopen(filename,"w");
             
             char* real_start = strstr(server->buf," end")+4;
             fwrite(real_start,sizeof(char), strlen(real_start), file);

@@ -47,7 +47,8 @@ void simple_cli(NetworkFileTool* client){
                 printf("received file_size = %d\n",file_size);
                 printf("received filename = %s\n",filename);
                 int remain_data = file_size;
-                FILE* file = fopen("dest","w");
+                strcat(filename,"copied");
+                FILE* file = fopen(filename,"w");
                 
                 char* real_start = strstr(client->buf," end")+4;
                 fwrite(real_start,sizeof(char), strlen(real_start), file);
