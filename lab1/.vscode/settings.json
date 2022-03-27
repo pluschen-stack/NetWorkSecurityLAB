@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "networkfile.h": "c",
-        "util.h": "c",
-        "stdio.h": "c",
-        "networkfiletool.h": "c"
-    }
-}
